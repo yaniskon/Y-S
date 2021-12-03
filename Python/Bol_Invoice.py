@@ -1,36 +1,67 @@
 from Bol_access_token import get_token
-import http.client
+#import http.client
 import requests
 import json
-import pyodbc
-import datetime
+from datetime import date, timedelta
+import time
+
 
 token = get_token()
 
 
 baseurl = "https://api.bol.com/retailer/invoices"
 
-parameters = []
-period_start_date = "2021-05-01"
-period_end_date = "2021-06-01"
 
-while (period_end_date < datetime.date.today()):
-  period_start_date.month += 1
-  period_end_date.month += 1
-  parameters.append({"period-start-date": period_start_date,  "period-end-date": period_end_date})
-# parameters= {"period-start-date": "2021-07-01", "period-end-date": "2021-08-01"}
-# ,
-#              ["period-start-date" : "2021-03-01","period-end-date": "2021-04-01"]}
+# start_date in date type
+def get_invoiceIDs(start_date):
+  period_start_date = start_date
 
-payload={}
-headers = {
-   'Accept': 'application/vnd.retailer.v6+json',
-   'Authorization': ''
-}
+  # specify API elements
+  payload={}
+  headers = {
+    'Accept': 'application/vnd.retailer.v6+json',
+    'Authorization': ''
+  }
 
-headers['Authorization'] = 'Bearer ' + token 
+  headers['Authorization'] = 'Bearer ' + token 
 
-response = requests.request("GET", baseurl, params=parameters, headers=headers, data=payload)
+  # make list of invoice ids
+  InvoiceId_list = set()
+  period_end_date = period_start_date + timedelta(days=30)
+  while period_start_date < date.today():
+    
+    # request
+    parameters ={"period-start-date": period_start_date,  "period-end-date": period_end_date}
+    response = requests.request("GET", baseurl, params=parameters, headers=headers, data=payload)
+    rate_limit = response.headers["X-RateLimit-Remaining"]
+    reset = response.headers["X-RateLimit-Reset"]
+    if int(rate_limit) < 2:
+      print("Good night!")
+      time.sleep(int(reset)+1)
+      print("Back there again!")
+    
+    # add invoiceid to list
+    response_dict = json.loads(response.text)
+    if "invoiceListItems" in response_dict:
+      invoice_list = response_dict["invoiceListItems"]
+
+      for invoice in invoice_list:
+        InvoiceId_list.add(invoice["invoiceId"])
+
+
+    # update interval
+    period_start_date= period_end_date
+    period_end_date +=  timedelta(days=30)
+
+  return list(InvoiceId_list)
+
+
+list_ids = get_invoiceIDs(date(2020,12,1))
+print(list_ids)
+
+"""
+
+
 
 
 # return response
@@ -39,13 +70,10 @@ response = requests.request("GET", baseurl, params=parameters, headers=headers, 
 # print(type(response_invoice['invoiceListItems']))
 # print(response_invoice['invoiceListItems'])
 
-conn = pyodbc.connect('Driver={SQL Server};'
-                  'Server=DESKTOP-5RJSIM1\SQLEXPRESS;'
-                  'Database=ERP;'
-                  'Trusted_Connection=yes;')
 
 
-cursor = conn.cursor()
+
+
 
 def get_invoiceIds(response):
   response_invoice = json.loads(response.text)
@@ -91,3 +119,5 @@ conn.close()
 
 
 #print(token)
+
+"""

@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{159641D6-6404-4A2A-AE62-294DE0FE8301}") = "Bol_Invoice_Specifications", "Bol_Invoice_Specifications.dtproj", "{8914EA46-5E1A-4BC9-A684-21E6BFFA9ED7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8914EA46-5E1A-4BC9-A684-21E6BFFA9ED7}.Development|Default.ActiveCfg = Development
+		{8914EA46-5E1A-4BC9-A684-21E6BFFA9ED7}.Development|Default.Build.0 = Development
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3D42C15-6183-4455-9786-3A68CA3E0EC2}
+	EndGlobalSection
+EndGlobal
