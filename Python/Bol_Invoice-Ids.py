@@ -33,6 +33,8 @@ def get_invoiceIDs(start_date):
     # request
     parameters ={"period-start-date": period_start_date,  "period-end-date": period_end_date}
     response = requests.request("GET", baseurl, params=parameters, headers=headers, data=payload)
+
+    # don't break bol
     rate_limit = response.headers["X-RateLimit-Remaining"]
     reset = response.headers["X-RateLimit-Reset"]
     if int(rate_limit) < 2:
