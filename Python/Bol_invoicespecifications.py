@@ -1,20 +1,17 @@
 from Bol_access_token import get_token
-from Bol_in import get_token
-#import http.client
+from Bol_InvoiceIds import list_ids
 import requests
 import json
 from datetime import date, timedelta
 import time
 
 
-token = get_token()
 
+baseurl = "https://api.bol.com/retailer/invoices/"
+print("+====================================+")
+print(list_ids[0])
 
-baseurl = "https://api.bol.com/retailer/invoices"
-
-
-# start_date in date type
-#def get_invoiceIDs(start_date):
+#def get_invoiceSpecifications():
 
 
 # specify API elements
@@ -24,7 +21,27 @@ headers = {
 'Authorization': ''
 }
 
-headers['Authorization'] = 'Bearer ' + token 
+headers['Authorization'] = 'Bearer ' + get_token() 
+
+
+# request
+fullbaseurl = baseurl + '3904875527181' + "/specification"
+response = requests.request("GET", fullbaseurl, headers=headers, data=payload)
+#print(response.text)
+
+response_dict2 = json.loads(response.text)
+#print(response_dict2)
+if "invoiceSpecification" in response_dict2:
+    InvoiceSpecifications = response_dict2["invoiceSpecification"]
+    for InvoiceElement in InvoiceSpecifications:
+        print("+===============================================+")
+        print("+===============================================+")
+        for i in InvoiceElement:
+            # if InvoiceElement[i] == 'AdditionalItemProperty':
+            # print(i, '->', InvoiceElement[i])
+            print(InvoiceElement[i])
+
+"""        print("+===============================================+")
 
 # make list of invoice ids
 InvoiceId_list = set()
@@ -34,9 +51,6 @@ list_ids = get_invoiceIDs(date(2020,12,1))
 for invoice in list_ids:
      
     print(invoice)
-# request
-baseurl =+ '/' + invoice
-response = requests.request("GET", baseurl, headers=headers, data=payload)
 
 # don't break bol
 rate_limit = response.headers["X-RateLimit-Remaining"]
@@ -58,3 +72,4 @@ print(response_dict)
 
 
 #  return list(InvoiceId_list)
+"""

@@ -59,7 +59,8 @@ def get_invoiceIDs(start_date):
 
 
 list_ids = get_invoiceIDs(date(2020,12,1))
-print(list_ids)
+#print(list_ids)
+
 
 """
 
