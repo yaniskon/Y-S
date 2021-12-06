@@ -9,7 +9,7 @@ import time
 
 baseurl = "https://api.bol.com/retailer/invoices/"
 print("+====================================+")
-print(list_ids[0])
+# print(list_ids[0])
 
 #def get_invoiceSpecifications():
 
@@ -23,23 +23,39 @@ headers = {
 
 headers['Authorization'] = 'Bearer ' + get_token() 
 
+invoicelistset = {}
+
+# loop through the invoices
+for invoice in list_ids:
 
 # request
-fullbaseurl = baseurl + '3904875527181' + "/specification"
-response = requests.request("GET", fullbaseurl, headers=headers, data=payload)
+    url = baseurl + invoice + "/specification"
+    response = requests.request("GET", url, headers=headers, data=payload)
 #print(response.text)
 
-response_dict2 = json.loads(response.text)
+    response_dict = json.loads(response.text)
 #print(response_dict2)
-if "invoiceSpecification" in response_dict2:
-    InvoiceSpecifications = response_dict2["invoiceSpecification"]
-    for InvoiceElement in InvoiceSpecifications:
-        print("+===============================================+")
-        print("+===============================================+")
-        for i in InvoiceElement:
-            # if InvoiceElement[i] == 'AdditionalItemProperty':
-            # print(i, '->', InvoiceElement[i])
-            print(InvoiceElement[i])
+    if "invoiceSpecification" in response_dict:
+        InvoiceSpecifications = response_dict["invoiceSpecification"]
+        for InvoiceElement in InvoiceSpecifications:
+            for i in InvoiceElement:
+                if 'item' in i:
+                # print(i, '->', InvoiceElement[i]['AdditionalItemProperty'])
+                # print(InvoiceElement[i]['AdditionalItemProperty'][1])
+                # print("STOP!")
+                # print(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
+                    print(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
+                    invoicelistset.add(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
+    print("+===================================+")
+    print(invoicelistset)
+# don't break bol
+    rate_limit = response.headers["X-RateLimit-Remaining"]
+    reset = response.headers["X-RateLimit-Reset"]
+    if int(rate_limit) < 2:
+      print("Good night!")
+      time.sleep(int(reset)+1)
+      print("Back there again!")
+
 
 """        print("+===============================================+")
 
