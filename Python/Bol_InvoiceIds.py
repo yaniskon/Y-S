@@ -37,9 +37,9 @@ def get_invoiceIDs(start_date):
     # don't break bol
     rate_limit = response.headers["X-RateLimit-Remaining"]
     reset = response.headers["X-RateLimit-Reset"]
-    if int(rate_limit) < 2:
+    if int(rate_limit) < 1:
       print("Good night!")
-      time.sleep(int(reset)+1)
+      time.sleep(int(reset))
       print("Back there again!")
     
     # add invoiceid to list
@@ -48,7 +48,8 @@ def get_invoiceIDs(start_date):
       invoice_list = response_dict["invoiceListItems"]
 
       for invoice in invoice_list:
-        InvoiceId_list.add(invoice["invoiceId"])
+        if invoice["invoiceId"] != "3905321480960":
+          InvoiceId_list.add(invoice["invoiceId"])
 
 
     # update interval
@@ -57,9 +58,9 @@ def get_invoiceIDs(start_date):
 
   return list(InvoiceId_list)
 
-
-list_ids = get_invoiceIDs(date(2020,12,1))
-#print(list_ids)
+if __name__ == "__main__":
+  list_ids = get_invoiceIDs(date(2020,12,1))
+  print(list_ids)
 
 
 """

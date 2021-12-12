@@ -1,5 +1,5 @@
 from Bol_access_token import get_token
-from Bol_InvoiceIds import list_ids
+from Bol_InvoiceIds import get_invoiceIDs
 import requests
 import json
 from datetime import date, timedelta
@@ -7,54 +7,51 @@ import time
 
 
 
-baseurl = "https://api.bol.com/retailer/invoices/"
-print("+====================================+")
-# print(list_ids[0])
+def get_orderids():
 
-#def get_invoiceSpecifications():
+    baseurl = "https://api.bol.com/retailer/invoices/"
 
+    # specify API elements
+    payload={}
+    headers = {
+    'Accept': 'application/vnd.retailer.v6+json',
+    'Authorization': ''
+    }
+    headers['Authorization'] = 'Bearer ' + get_token() 
 
-# specify API elements
-payload={}
-headers = {
-'Accept': 'application/vnd.retailer.v6+json',
-'Authorization': ''
-}
+    orderids_set = set()
 
-headers['Authorization'] = 'Bearer ' + get_token() 
+    # loop through the invoices
+    for invoice in get_invoiceIDs(date(2020,12,1)):
 
-invoicelistset = {}
+        # request
+        url = baseurl + invoice + "/specification"
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response_dict = json.loads(response.text)
 
-# loop through the invoices
-for invoice in list_ids:
+        # don't break bol
+        rate_limit = response.headers["X-RateLimit-Remaining"]
+        reset = response.headers["X-RateLimit-Reset"]
+        if int(rate_limit) < 1:
+            print("Good night!")
+            time.sleep(int(reset))
+            print("Back there again!")
+        
+        for InvoiceElement in response_dict["invoiceSpecification"]:
+            if InvoiceElement["item"]["AdditionalItemProperty"] != []:
+                orderid = InvoiceElement["item"]["AdditionalItemProperty"][0]["Value"]["value"]
+                orderids_set.add(orderid)
 
-# request
-    url = baseurl + invoice + "/specification"
-    response = requests.request("GET", url, headers=headers, data=payload)
-#print(response.text)
+    return list(orderids_set)
 
-    response_dict = json.loads(response.text)
-#print(response_dict2)
-    if "invoiceSpecification" in response_dict:
-        InvoiceSpecifications = response_dict["invoiceSpecification"]
-        for InvoiceElement in InvoiceSpecifications:
-            for i in InvoiceElement:
-                if 'item' in i:
-                # print(i, '->', InvoiceElement[i]['AdditionalItemProperty'])
-                # print(InvoiceElement[i]['AdditionalItemProperty'][1])
-                # print("STOP!")
-                # print(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
-                    print(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
-                    invoicelistset.add(InvoiceElement[i]['AdditionalItemProperty'][0]['Value']['value'])
-    print("+===================================+")
-    print(invoicelistset)
-# don't break bol
-    rate_limit = response.headers["X-RateLimit-Remaining"]
-    reset = response.headers["X-RateLimit-Reset"]
-    if int(rate_limit) < 2:
-      print("Good night!")
-      time.sleep(int(reset)+1)
-      print("Back there again!")
+orderids = get_orderids()        
+print(orderids)
+print(len(orderids))
+
+class Order:
+    def __init__(self, orderid):
+        # get all things we want
+        self.orderid = orderid
 
 
 """        print("+===============================================+")
