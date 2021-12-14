@@ -44,4 +44,7 @@ while bool_results:  # We can paginate this API up until 3 months worth of shipm
  
 print(ship_results)
 print(len(ship_results))
-json.dump( ship_results, open( "shipment_results_12-12-21.json", 'w' ) )
+# Save into a file 
+print("+====================================+")
+print(ship_results[0])
+# json.dump( ship_results, open( "shipment_results_12-12-21.json", 'w' ) )
