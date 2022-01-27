@@ -1,0 +1,14 @@
+import requests
+
+url = "https://api.bol.com/retailer/offers/export/2457f431-267e-4af7-a022-8c920d42aac6"
+
+payload={}
+headers = {
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'Accept': 'application/vnd.retailer.v6+csv',
+  'Authorization': 'Bearer eyJraWQiOiJyc2EyIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1ZjZlNjFjZC05ZTU5LTQ3MjgtODU0OS1mOWFkNDEzMmI5ZGQiLCJhenAiOiI1ZjZlNjFjZC05ZTU5LTQ3MjgtODU0OS1mOWFkNDEzMmI5ZGQiLCJjbGllbnRuYW1lIjoieWFuaXMiLCJpc3MiOiJodHRwczpcL1wvbG9naW4uYm9sLmNvbSIsInNjb3BlcyI6IlJFVEFJTEVSIiwiZXhwIjoxNjQzMjg5OTc3LCJpYXQiOjE2NDMyODk2NzcsImFpZCI6IkNMTlRDOmJlMmI3MDE2LTczNDYtYzM2ZS1kMTM4LTc3NzA4MTczZjdiYyBTTFI6MTY1Njg0NCIsImp0aSI6IjE3OWUzNTg3LWMwYmYtNGI0Yi05M2Y3LWRkMDA5YjA1NGYyZSJ9.QyM3H_QpXacbDC-1lNCrMt9DRqViSgZYGI_kY7mCfdqBTaLcqr4SJiaXgn5FE6Cwtu98Nowjz0x3e-Hkgz3fQ0R0vgkxSFBmPtExJPafqa79RLkTxUd_IaxMrIudzSGnBIlRAprQQn-Yjw27qcLZ4FE9uuNXCupS4lNUts_7F9fZHxkqkkdGRy6RTTd5JzNzswMGJ48hnutp5kbojiT01kY6N_iJoK92FG2uoz0rH6JVDigOSfJlSy2WW9OplV-UhGySEKPvE3FdYDw-YcoACF3lrTW_Z4YkwlGObkaCKG54CMOXg0XhQXTSBNyWlCeyag5CTZyY7nXeOjuzpDhPgQ'
+}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)

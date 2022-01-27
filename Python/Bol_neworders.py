@@ -7,7 +7,7 @@ import pymongo
 
 # Standard API parameters
 
-url = "https://api.bol.com/retailer/shipments"
+url = "https://api.bol.com/retailer/orders"
 payload={}
 headers = {
   'Accept': 'application/vnd.retailer.v6+json',
@@ -15,17 +15,16 @@ headers = {
 }
 headers['Authorization'] = 'Bearer ' + get_token() 
 
+
 # Mongo db
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["bol"]
-mycol = mydb["shipments"]
+myorder = mydb["orders"]
 
-# Parameters & variables for collecting as much shipment data as possible 
 
 page = 1
 bool_results = True
-ship_results = []
 
 while bool_results:  # We can paginate this API up until 3 months worth of shipments
     enrichedurl = url + f"?page={page}"
@@ -41,22 +40,17 @@ while bool_results:  # We can paginate this API up until 3 months worth of shipm
         print("Back there again!")
     
     print(response.text)
-    
+
     if response_dict != {}:
-        for shipment in response_dict['shipments']:
-          #ship_results.append(shipment)
-          print(shipment)
-          if shipment.get("shipmentReference") is not None:
-            if shipment["shipmentReference"] not in mycol.distinct("shipmentReference"):
-              mycol.insert_one(shipment)
-          else:
-            pass
+        pass
+        # for neworder in response_dict['shipments']:
+        #   #ship_results.append(shipment)
+        #   print(shipment)
+        #   if shipment.get("shipmentReference") is not None:
+        #     if shipment["shipmentReference"] not in mycol.distinct("shipmentReference"):
+        #       mycol.insert_one(shipment)
+        #   else:
+        #     pass
     else:
       bool_results = False
     page += 1
- 
-print(ship_results)
-print(len(ship_results))
-# Save into a file 
-print("+====================================+")
-# json.dump( ship_results, open( "shipment_results_12-12-21.json", 'w' ) )
