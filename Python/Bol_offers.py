@@ -1,6 +1,3 @@
-from concurrent.futures import process
-from email.utils import encode_rfc2231
-from http.client import responses
 from Bol_access_token import get_token
 import requests
 import json
@@ -8,6 +5,7 @@ import csv
 import time
 from pymongo import MongoClient
 import pymongo
+import pandas as pd
 
 # Standard API parameters
 
@@ -75,9 +73,13 @@ headers = {
 response = requests.request("GET", url, headers=headers, data=payload)
 
 print(response.text)
-print(type(response.text))
+print("+=====telos========+")
 
-# Mongo db
+data = response.text
+df = pd.DataFrame([x.split(',') for x in data.split('\n')])
+print(df)
+
+
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["bol"]
 myproducts = mydb["products"]

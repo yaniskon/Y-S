@@ -28,7 +28,7 @@ BEGIN
 
     -- Insert statements for procedure here
 	INSERT INTO stg.Bol_Invoice
-	SELECT invoiceId 
+	SELECT invoiceId2 
 		FROM OPENJSON(@json)
 		WITH (
 				invoiceId NVARCHAR(50) '$.period' 	
