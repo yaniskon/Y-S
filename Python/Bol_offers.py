@@ -32,7 +32,7 @@ response_dict = json.loads(response.text)
 # print(response_dict)
 processID = response_dict['processStatusId']
 print(processID)
-time.sleep(10)
+time.sleep(5)
 
 # Step 2
 # In the response to the previous request you can find the processID.
@@ -78,7 +78,7 @@ print("+=====telos========+")
 data = response.text
 df = pd.DataFrame([x.split(',') for x in data.split('\n')])
 print(df)
-
+df.to_csv('offers.csv')
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["bol"]
