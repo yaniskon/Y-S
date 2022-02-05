@@ -1,0 +1,8 @@
+{
+  "type" : "https://api.bol.com/problems",
+  "title" : "Not Found",
+  "status" : 404,
+  "detail" : "Shipping label not found for shipping label id: 4ea7ebe2-1c31-4bf8-8cbf-21c6ec9e964e.",
+  "host" : "Instance-107",
+  "instance" : "https://api.bol.com/retailer/shipping-labels/4ea7ebe2-1c31-4bf8-8cbf-21c6ec9e964e"
+}
