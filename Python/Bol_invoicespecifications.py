@@ -48,10 +48,6 @@ orderids = get_orderids()
 print(orderids)
 print(len(orderids))
 
-class Order:
-    def __init__(self, orderid):
-        # get all things we want
-        self.orderid = orderid
 
 
 """        print("+===============================================+")

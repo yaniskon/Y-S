@@ -26,16 +26,17 @@ def get_new_orders():
     print("Back there again!")
   
   response_dict = json.loads(response.text)
-  orderItemId_ean = []
+  # print(response_dict)
+  orderItemId_ean_quantity = []
   for order in response_dict['orders']:
     for item in order['orderItems']:
-      orderItemId_ean.append([item['orderItemId'], item['ean']])
+      orderItemId_ean_quantity.append([item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled']])
  
 
-  return orderItemId_ean
+  return orderItemId_ean_quantity
 
 
-def delivery_options(orderitemID, ean):
+def delivery_options(orderitemID, ean, quantity, quantityShipped, quantityCancelled):
   url = 'https://api.bol.com/retailer/shipping-labels/delivery-options'
   headers = {
   'Accept': 'application/vnd.retailer.v6+json',
@@ -70,7 +71,11 @@ def delivery_options(orderitemID, ean):
   
   df=pd.read_csv(r'C:\Users\konst\Documents\Y-S\Python\offers.csv', converters={'ean':conv}, sep= ',', header = 1)
   df = df [(df['ean'] == int(ean))]
-  df = df[['ean','referenceCode', 'bundlePricesPrice', ]]
+  df['quantity'] = quantity
+  df['quantityShipped'] = quantityShipped
+  df['quantityCancelled'] = quantityCancelled
+   
+  df = df[['ean','referenceCode', 'bundlePricesPrice', 'quantity', 'quantityShipped', 'quantityCancelled']]
   print("+=======================================================================+\n")
   print(df)
   print("+=======================================================================+\n")
@@ -161,9 +166,9 @@ def ship_order_item(orderId, shippingLabel):
 
   print(response.text)
 
-#print(get_new_orders())
-for orderItemId, ean in get_new_orders():
-  result = delivery_options(orderItemId, ean) 
+# print(get_new_orders())
+for orderItemId, ean, quantity, quantityShipped, quantityCancelled in get_new_orders():
+  result = delivery_options(orderItemId, ean, quantity, quantityShipped, quantityCancelled) 
   for shippingLabelOfferId in result[orderItemId]:
     shipingLabel = get_process(Create_a_shipping_label(orderItemId, shippingLabelOfferId))
     get_shipping_label(shipingLabel)

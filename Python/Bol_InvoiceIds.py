@@ -1,15 +1,9 @@
 from Bol_access_token import get_token
-#import http.client
 import requests
 import json
 from datetime import date, timedelta
 import time
 
-
-token = get_token()
-
-
-baseurl = "https://api.bol.com/retailer/invoices"
 
 
 # start_date in date type
@@ -17,13 +11,13 @@ def get_invoiceIDs(start_date):
   period_start_date = start_date
 
   # specify API elements
+  baseurl = "https://api.bol.com/retailer/invoices"
   payload={}
   headers = {
     'Accept': 'application/vnd.retailer.v6+json',
-    'Authorization': ''
+    'Authorization': 'Bearer ' + get_token()
   }
 
-  headers['Authorization'] = 'Bearer ' + token 
 
   # make list of invoice ids
   InvoiceId_list = set()
@@ -44,11 +38,13 @@ def get_invoiceIDs(start_date):
     
     # add invoiceid to list
     response_dict = json.loads(response.text)
+    print(response_dict)
+    print("\n\n")
     if "invoiceListItems" in response_dict:
       invoice_list = response_dict["invoiceListItems"]
 
       for invoice in invoice_list:
-        if invoice["invoiceId"] != "3905321480960":
+        if invoice["invoiceId"] != "3905321480960": #I exclude Bol.com Retailer Media Groep invoice
           InvoiceId_list.add(invoice["invoiceId"])
 
 
