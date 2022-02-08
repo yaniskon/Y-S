@@ -32,7 +32,7 @@ response_dict = json.loads(response.text)
 # print(response_dict)
 processID = response_dict['processStatusId']
 print(processID)
-time.sleep(5)
+time.sleep(10)
 
 # Step 2
 # In the response to the previous request you can find the processID.

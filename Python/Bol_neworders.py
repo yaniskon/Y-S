@@ -26,7 +26,7 @@ def get_new_orders():
     print("Back there again!")
   
   response_dict = json.loads(response.text)
-  # print(response_dict)
+  print(response_dict)
   orderItemId_ean_quantity = []
   for order in response_dict['orders']:
     for item in order['orderItems']:
