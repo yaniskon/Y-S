@@ -5,7 +5,15 @@ import time
 import pandas as pd
 import os
 import pymongo
+import mysql.connector
 
+mysqldb = mysql.connector.connect(host="localhost", user="root", passwd = "", database = "ordersmanagement")
+if mysqldb:
+    print('MySQL Connection sucessful')
+else:
+    print('Something failed')
+
+mycursor = mysqldb.cursor() 
 
 def get_new_orders():
   url = "https://api.bol.com/retailer/orders"
@@ -25,17 +33,65 @@ def get_new_orders():
     print("Back there again!")
   
   response_dict = json.loads(response.text)
-  print(response_dict)
-  orderItemId_ean_quantity = []
+  # print(response_dict['orders'])
+
+  order_list = []
+  ordeitems_list = []
+
   for order in response_dict['orders']:
+    order_data = (order['orderId'], order['orderPlacedDateTime'])
+    query = 'INSERT INTO orders(orderId, orderPlacedDateTime) VALUES (%s, %s)'
+    mycursor.execute(query, order_data)
+    mysqldb.commit()
+    order_list.append(order_data)
     for item in order['orderItems']:
-      orderItemId_ean_quantity.append([item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled']])
- 
+      query2 = 'INSERT INTO ordersitems(orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId) VALUES (%s, %s, %s, %s, %s, %s)'
+      orderlist_data = (item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled'], order['orderId'])
+      ordersss_items = [item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled'], order['orderId']]
+      mycursor.execute(query2, orderlist_data)
+      mysqldb.commit()
+      ordeitems_list.append(ordersss_items)
+      
+  print(ordeitems_list)
+  return ordeitems_list
 
-  return orderItemId_ean_quantity
+def get_orderid_data(orderId):
+  myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+  mydb = myclient["bol"]
+  myorderinfo = mydb["orderInfo"]
+
+  url = 'https://api.bol.com/retailer/orders/' + orderId
+  payload={}
+  headers = {
+  'Accept': 'application/vnd.retailer.v6+json',
+  'Authorization': 'Bearer ' + get_token() 
+}
+  response = requests.request("GET", url, headers=headers, data=payload)
+  response_dict = json.loads(response.text)
+  print(response_dict)
+  data = []
+
+  # Insert into MySQL
+  data= (response_dict['shipmentDetails']['salutation'], response_dict['shipmentDetails']['firstName'], response_dict['shipmentDetails']['surname'], response_dict['shipmentDetails']['streetName'], response_dict['shipmentDetails']['houseNumber'], response_dict['shipmentDetails']['zipCode'], response_dict['shipmentDetails']['city'], response_dict['shipmentDetails']['countryCode'], response_dict['shipmentDetails']['email'], response_dict['shipmentDetails']['language'], '', orderId)
+  print('OrderID: '+ orderId)
+  query = "SELECT COUNT(*) as total FROM shipmentdetails WHERE orderId =" +  orderId 
+  mycursor.execute(query)
+  required_data = mycursor.fetchone()
+  if required_data[0] == 0:
+    print('Inside if')
+    query = 'INSERT INTO shipmentdetails(salutation, firstName, surname, streetName, houseNumber, zipCode, city, countryCode, email, language, cancellationRequest, orderId) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+    mycursor.execute(query, data)
+    mysqldb.commit()
+
+  # Insert into MongoDB
+  if myorderinfo.find_one({"orderId": orderId}) == None:
+    myorderinfo.insert_one(response_dict)
+  
+  return response_dict
 
 
-def delivery_options(orderitemID, ean, quantity, quantityShipped, quantityCancelled):
+
+def delivery_options(orderitemID, ean, quantity, quantityShipped, quantityCancelled, cancellation_flag):
   url = 'https://api.bol.com/retailer/shipping-labels/delivery-options'
   headers = {
   'Accept': 'application/vnd.retailer.v6+json',
@@ -73,18 +129,19 @@ def delivery_options(orderitemID, ean, quantity, quantityShipped, quantityCancel
   df['quantity'] = quantity
   df['quantityShipped'] = quantityShipped
   df['quantityCancelled'] = quantityCancelled
+  df['cancellation_flag'] = cancellation_flag
    
-  df = df[['ean','referenceCode', 'bundlePricesPrice', 'quantity', 'quantityShipped', 'quantityCancelled']]
-  print("+=======================================================================+\n")
+  df = df[['ean','referenceCode', 'bundlePricesPrice', 'quantity', 'quantityShipped', 'quantityCancelled', 'cancellation_flag']]
+  print("+===============================================================================================================+\n")
   print(df)
-  print("+=======================================================================+\n")
+  print("+===============================================================================================================+\n")
   print("Delivery charges:")
   while i < len(deliveryIds):
     print(i+1, ":", price[i])
     i += 1
   choice = int(input("Enter your choice: "))
   delivery = [deliveryIds[choice-1]]
-
+  print(delivery)
   return {orderitemID:delivery}
 
 
@@ -139,7 +196,7 @@ def get_shipping_label(delivery_id):
   payload = ""
   get_shipping_label_response = requests.request("GET", enrichurl , headers=headers, data=payload)
   save_path = r'C:\Users\konst\Documents\Y-S\Python\Labels'
-  file_name = delivery_id[:5]+".pdf"
+  file_name = delivery_id[::]+".pdf"
   completeName = os.path.join(save_path, file_name)
   open(completeName, "wb").write(get_shipping_label_response.content)
   os.startfile(completeName, "print")
@@ -152,7 +209,26 @@ def ship_order_item(orderId, shippingLabel):
   'Content-Type': 'application/vnd.retailer.v6+json',
   'Authorization': 'Bearer ' + get_token() 
   }
-  shipRef = input("Enter your FA-: ")
+  myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+  mongodb = myclient["bol"]
+  shipmentsinfo = mongodb["shipments"]
+  shipmentsinfo.find({'shipmentReference': 1})
+  fa_numbers = []
+  for shipmentfind in shipmentsinfo.find({},{'shipmentReference': 1}):
+      key = 'shipmentReference'
+      if key in shipmentfind:
+          word = shipmentfind['shipmentReference']
+          if len(word) < 20:
+              fa_numbers.append(int(word[3:10]))
+  FA = max(fa_numbers) +1
+  if FA < 1000:
+    shipRef = 'FA-0000' + str(FA)
+  elif FA >= 1000 and FA < 10000:
+    shipRef = 'FA-000' + str(FA)
+  elif FA >=10000 and FA < 100000:
+    shipRef = 'FA-00' + str(FA)  
+  print(shipRef)
+  user_value = input('Press Enter')
   payload = json.dumps({
   "orderItems": [
     {
@@ -166,52 +242,20 @@ def ship_order_item(orderId, shippingLabel):
 
   print(response.text)
 
+ 
+# try:
+#   for order in get_orderid():
+#     get_orderid_data(order)
+# except KeyError:
+#   print("No new orders!")
 
-
-def get_orderid():
-  url = "https://api.bol.com/retailer/orders"
-  payload={}
-  headers = {
-  'Accept': 'application/vnd.retailer.v6+json',
-  'Authorization': 'Bearer ' + get_token() 
-  }
-  response = requests.request("GET", url , headers=headers, data=payload)
-
-  response_dict = json.loads(response.text)
-  print(response_dict)
-  orderIds = []
-  for order in response_dict['orders']:
-    orderIds.append(order['orderId'])
-  return orderIds
-
-
-def get_orderid_data(orderId):
-  myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-  mydb = myclient["bol"]
-  myorderinfo = mydb["orderInfo"]
-
-  url = 'https://api.bol.com/retailer/orders/' + orderId
-  payload={}
-  headers = {
-  'Accept': 'application/vnd.retailer.v6+json',
-  'Authorization': 'Bearer ' + get_token() 
-}
-
-  response = requests.request("GET", url, headers=headers, data=payload)
-  response_dict = json.loads(response.text)
-  if myorderinfo.find_one({"orderId": orderId}) == None:
-    myorderinfo.insert_one(response_dict)
-
-
-try:
-  for order in get_orderid():
-    get_orderid_data(order)
-except KeyError:
-  print("No new orders!")
-
-# print(get_new_orders())
-for orderItemId, ean, quantity, quantityShipped, quantityCancelled in get_new_orders():
-  result = delivery_options(orderItemId, ean, quantity, quantityShipped, quantityCancelled) 
+for orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId in get_new_orders():
+  order_details = get_orderid_data(orderId)
+  required_items_list = []
+  for item in order_details['orderItems']:
+    if item['orderItemId'] == orderItemId:
+      cancellation_flag = item['cancellationRequest']    
+  result = delivery_options(orderItemId, ean, quantity, quantityShipped, quantityCancelled, cancellation_flag)
   for shippingLabelOfferId in result[orderItemId]:
     shipingLabel = get_process(Create_a_shipping_label(orderItemId, shippingLabelOfferId))
     get_shipping_label(shipingLabel)
