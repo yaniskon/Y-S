@@ -56,8 +56,8 @@ def get_invoiceIDs(start_date):
         mycursor.execute(query)
         required_data = mycursor.fetchone()
         if required_data[0] == 0:
-          data = invoice["invoiceId"] , invoice["issueDate"], invoice["invoicePeriod"]["startDate"], invoice["invoicePeriod"]["endDate"], invoice["invoiceType"], invoice["legalMonetaryTotal"]["payableAmount"]["amount"], invoice["legalMonetaryTotal"]["taxExclusiveAmount"]["amount"]
-          query = 'INSERT INTO invoicehead(invoiceId, issueDate, startDate, endDate, invoiceType, payableAmount, taxExclusiveAmount) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+          data = invoice["invoiceId"] , invoice["issueDate"], invoice["invoicePeriod"]["startDate"], invoice["invoicePeriod"]["endDate"], invoice["invoiceType"], invoice["legalMonetaryTotal"]["lineExtensionAmount"]["amount"], invoice["legalMonetaryTotal"]["payableAmount"]["amount"], invoice["legalMonetaryTotal"]["taxExclusiveAmount"]["amount"], invoice["legalMonetaryTotal"]["taxInclusiveAmount"]["amount"]
+          query = 'INSERT INTO invoicehead(invoiceId, issueDate, startDate, endDate, invoiceType, lineExtensionAmount, payableAmount, taxExclusiveAmount, taxInclusiveAmount) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
           mycursor.execute(query, data)
           mydb.commit()
 

@@ -7,6 +7,7 @@ import pyodbc
 from datetime import date
 from datetime import time
 from datetime import timedelta
+import pymongo
 
 # a = datetime.date.today()
 
@@ -66,11 +67,37 @@ import pandas as pd
 # df = df[['ean','referenceCode', 'bundlePricesPrice', ]]
 # print(df)
 
-import os
+# import os
 
 
-os.startfile("e47da.pdf", "print")
+# os.startfile("e47da.pdf", "print")
 # time.sleep(5)
 # for p in psutil.process_iter(): #Close Acrobat after printing the PDF
 #     if 'AcroRd' in str(p):
 #         p.kill()
+
+
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+mongodb = myclient["bol"]
+shipmentsinfo = mongodb["shipments"]
+shipmentsinfo.find({'shipmentReference': 1})
+fa_strings = []
+fa_numbers = []
+for shipmentfind in shipmentsinfo.find({},{'shipmentReference': 1}):
+    key = 'shipmentReference'
+    if key in shipmentfind:
+        word = shipmentfind['shipmentReference']
+        if len(word) < 20:
+            fa_numbers.append(int(word[3:10]))
+    
+    # print(f'Item: {word}, length is: {len(word)}')
+    # if len(shipmentfind['shipmentReference']) <= 10:
+    #     print(shipmentfind['shipmentReference'])
+    # if len(shipmentfind['shipmentReference']) > 10:
+        
+        # 
+FA = max(fa_numbers) +1
+print(FA)
+# # txt = "h3110 23 cat 444.4 rabbit 11 2 dog"
+# # [int(s) for s in txt.split() if s.isdigit()]
+# # [23, 11, 2]
