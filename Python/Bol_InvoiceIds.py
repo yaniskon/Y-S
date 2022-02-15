@@ -3,7 +3,15 @@ import requests
 import json
 from datetime import date, timedelta
 import time
+import mysql.connector
 
+mydb = mysql.connector.connect(host="localhost", user="root", passwd = "", database = "ordersmanagement")
+if mydb:
+    print('Connection sucessful')
+else:
+    print('Something failed')
+
+mycursor = mydb.cursor()   
 
 
 # start_date in date type
@@ -44,8 +52,14 @@ def get_invoiceIDs(start_date):
       invoice_list = response_dict["invoiceListItems"]
 
       for invoice in invoice_list:
-        if invoice["invoiceId"] != "3905321480960": #I exclude Bol.com Retailer Media Groep invoice
-          InvoiceId_list.add(invoice["invoiceId"])
+        query = "SELECT COUNT(*) as total FROM invoicehead WHERE invoiceId =" +  invoice["invoiceId"] 
+        mycursor.execute(query)
+        required_data = mycursor.fetchone()
+        if required_data[0] == 0:
+          data = invoice["invoiceId"] , invoice["issueDate"], invoice["invoicePeriod"]["startDate"], invoice["invoicePeriod"]["endDate"], invoice["invoiceType"], invoice["legalMonetaryTotal"]["payableAmount"]["amount"], invoice["legalMonetaryTotal"]["taxExclusiveAmount"]["amount"]
+          query = 'INSERT INTO invoicehead(invoiceId, issueDate, startDate, endDate, invoiceType, payableAmount, taxExclusiveAmount) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+          mycursor.execute(query, data)
+          mydb.commit()
 
 
     # update interval
@@ -57,67 +71,3 @@ def get_invoiceIDs(start_date):
 if __name__ == "__main__":
   list_ids = get_invoiceIDs(date(2020,12,1))
   print(list_ids)
-
-
-"""
-
-
-
-
-# return response
-# print(response_invoice)
-# print(type(response_invoice['period']))
-# print(type(response_invoice['invoiceListItems']))
-# print(response_invoice['invoiceListItems'])
-
-
-
-
-
-
-def get_invoiceIds(response):
-  response_invoice = json.loads(response.text)
-  invoiceIds = []
-  for invoice in response_invoice['invoiceListItems']:
-    invoiceIds.append(invoice['invoiceId'])
-    #invoiceIds.append(invoice['issuePeriod'])
-    #print(invoice)
-  return invoiceIds
-
-print(get_invoiceIds(response))
-
-
-# for id in get_invoiceIds(response):
-#   cursor.execute("insert into [stg].[Bol_InvoiceId](InvoiceId) values (?)", id )
-
-
-# try:
-
-
-conn.commit()
-conn.close()
-# for i in cursor:
-#     print(i)
-
-
-# url = "https://api.bol.com/retailer/invoices/3903865603660/specification"
-
-# payload={}
-# headers = {
-#   'Accept': 'application/vnd.retailer.v6+json',
-#     'Authorization': 'Bearer eyJraWQiOiJyc2EyIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1ZjZlNjFjZC05ZTU5LTQ3MjgtODU0OS1mOWFkNDEzMmI5ZGQiLCJhenAiOiI1ZjZlNjFjZC05ZTU5LTQ3MjgtODU0OS1mOWFkNDEzMmI5ZGQiLCJjbGllbnRuYW1lIjoieWFuaXMiLCJpc3MiOiJodHRwczpcL1wvbG9naW4uYm9sLmNvbSIsInNjb3BlcyI6IlJFVEFJTEVSIiwiZXhwIjoxNjM4MjAxODE2LCJpYXQiOjE2MzgyMDE1MTYsImFpZCI6IkNMTlRDOmJlMmI3MDE2LTczNDYtYzM2ZS1kMTM4LTc3NzA4MTczZjdiYyBTTFI6MTY1Njg0NCIsImp0aSI6IjI1YWVlOTE1LWZhZjctNGJlOC1hZDNhLWIzYjQ3OTVmY2RkOSJ9.ieZGPit2zWC6O_nBeg9uMc923o784iesTOvDLmHAuBoHk6bgZXsIzJKYUnm4_AuNMEVMORwtErU5SLbVJllJy6B1zXVUbtdjB5CeFH7vOPp2ZVIaTvTyw7AOoDFpnBQc4cv2TPzqmSo5Zw_i6nT_AO7u3ZE-91aeTib_YnvJcRGWrF9mSipEGh8wnGn50TgYf9a6rvfED-pnjiaw1Pu4mp0RUrBDFWBFP9P3yFufia35gdd4ysoU1vlTixvBTsptmQ4cQsnYvrsC4g24FvL8tRB_f27crqK0_PK4WROImz5eUjdttXzb3rDZ_FaaiZ7obzJoeS5LDJNXvWb2dubLaw'
-
-# }
-
-# response = requests.request("GET", url, headers=headers, data=payload)
-
-# print(response.text)
-
-
-
-
-
-
-#print(token)
-
-"""
