@@ -7,9 +7,9 @@ import mysql.connector
 
 mydb = mysql.connector.connect(host="localhost", user="root", passwd = "", database = "ordersmanagement")
 if mydb:
-    print('Connection sucessful')
+    pass
 else:
-    print('Something failed')
+    print('MYSQL Connection failed')
 
 mycursor = mydb.cursor()   
 

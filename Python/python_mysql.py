@@ -15,7 +15,8 @@ mycursor = mydb.cursor()
 # mycursor.execute('CREATE TABLE Orders (orderId bigint NOT NULL, orderPlacedDateTime varchar(50), PRIMARY KEY (orderId))')
 # mycursor.execute('CREATE TABLE OrdersItems (orderItemId bigint NOT NULL, ean varchar(15), quantity bigint, quantityShipped bigint, quantityCancelled bigint, orderId bigint, PRIMARY KEY (orderItemId), FOREIGN KEY (orderId) REFERENCES orders(orderId))')
 # mycursor.execute('CREATE TABLE shipmentDetails (salutation varchar(50), firstName varchar(50), surname varchar(50), streetName varchar(50), houseNumber varchar(50), zipCode varchar(50), city varchar(50), countryCode varchar(5), email varchar(50), language varchar(10), cancellationRequest boolean,orderId bigint, PRIMARY KEY (orderId))')
-mycursor.execute('CREATE TABLE InvoiceHead (invoiceId bigint NOT NULL, issueDate bigint, startDate bigint, endDate bigint, invoiceType varchar(50), lineExtensionAmount decimal (10, 2), payableAmount decimal (10, 2), taxExclusiveAmount decimal (10, 2), taxInclusiveAmount decimal (10, 2), timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (invoiceId))')
+# mycursor.execute('CREATE TABLE InvoiceHead (invoiceId bigint NOT NULL, issueDate bigint, startDate bigint, endDate bigint, invoiceType varchar(50), lineExtensionAmount decimal (10, 2), payableAmount decimal (10, 2), taxExclusiveAmount decimal (10, 2), taxInclusiveAmount decimal (10, 2), timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (invoiceId))')
+mycursor.execute('CREATE TABLE InvoiceSpecs (id varchar(255) NOT NULL, invoiceLineRef varchar(50), invoiceQuantity varchar(50), orderId bigint, code varchar(50), taxPercent varchar(50), description varchar(100), categoryInvoiceElement varchar(50), totalPriceAmount varchar(50), quantity varchar(50), price varchar(50), taxTotal varchar(50), updated_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (Id))')
 
 # mycursor.execute('SHOW TABLESItems')
 # for table in mycursor:

@@ -9,9 +9,9 @@ import mysql.connector
 
 mysqldb = mysql.connector.connect(host="localhost", user="root", passwd = "", database = "ordersmanagement")
 if mysqldb:
-    print('MySQL Connection sucessful')
+    pass
 else:
-    print('Something failed')
+    print('MYSQL Connection failed')
 
 mycursor = mysqldb.cursor() 
 
@@ -33,26 +33,35 @@ def get_new_orders():
     print("Back there again!")
   
   response_dict = json.loads(response.text)
-  # print(response_dict['orders'])
+  print(response_dict['orders'])
 
   order_list = []
   ordeitems_list = []
 
   for order in response_dict['orders']:
+
     order_data = (order['orderId'], order['orderPlacedDateTime'])
-    query = 'INSERT INTO orders(orderId, orderPlacedDateTime) VALUES (%s, %s)'
-    mycursor.execute(query, order_data)
-    mysqldb.commit()
+    check_unique = "SELECT COUNT(*) as total FROM orders WHERE orderId ='" +  str(order['orderId']) + "'"
+    mycursor.execute(check_unique)
+    unique_check = mycursor.fetchone()
+    if unique_check[0] == 0:
+      query = 'INSERT INTO orders(orderId, orderPlacedDateTime) VALUES (%s, %s)'
+      mycursor.execute(query, order_data)
+      mysqldb.commit()
     order_list.append(order_data)
     for item in order['orderItems']:
-      query2 = 'INSERT INTO ordersitems(orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId) VALUES (%s, %s, %s, %s, %s, %s)'
-      orderlist_data = (item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled'], order['orderId'])
+      check_unique2 = "SELECT COUNT(*) as total FROM ordersitems WHERE orderItemId ='" +  str(item['orderItemId']) + "'" 
+      mycursor.execute(check_unique2)
+      unique_check_result = mycursor.fetchone()
       ordersss_items = [item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled'], order['orderId']]
-      mycursor.execute(query2, orderlist_data)
-      mysqldb.commit()
+      orderlist_data = (item['orderItemId'], item['ean'], item['quantity'], item['quantityShipped'], item['quantityCancelled'], order['orderId'])
+      if unique_check_result[0] == 0:
+        query2 = 'INSERT INTO ordersitems(orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId) VALUES (%s, %s, %s, %s, %s, %s)'
+        mycursor.execute(query2, orderlist_data)
+        mysqldb.commit()
       ordeitems_list.append(ordersss_items)
       
-  print(ordeitems_list)
+  #print(ordeitems_list)
   return ordeitems_list
 
 def get_orderid_data(orderId):
@@ -244,19 +253,22 @@ def ship_order_item(orderId, shippingLabel):
 
  
 # try:
-#   for order in get_orderid():
+#   for order in get_new_orders():
 #     get_orderid_data(order)
 # except KeyError:
 #   print("No new orders!")
 
-for orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId in get_new_orders():
-  order_details = get_orderid_data(orderId)
-  required_items_list = []
-  for item in order_details['orderItems']:
-    if item['orderItemId'] == orderItemId:
-      cancellation_flag = item['cancellationRequest']    
-  result = delivery_options(orderItemId, ean, quantity, quantityShipped, quantityCancelled, cancellation_flag)
-  for shippingLabelOfferId in result[orderItemId]:
-    shipingLabel = get_process(Create_a_shipping_label(orderItemId, shippingLabelOfferId))
-    get_shipping_label(shipingLabel)
-    ship_order_item(orderItemId, shipingLabel)
+try:
+  for orderItemId, ean, quantity, quantityShipped, quantityCancelled, orderId in get_new_orders():
+    order_details = get_orderid_data(orderId)
+    required_items_list = []
+    for item in order_details['orderItems']:
+      if item['orderItemId'] == orderItemId:
+        cancellation_flag = item['cancellationRequest']    
+    result = delivery_options(orderItemId, ean, quantity, quantityShipped, quantityCancelled, cancellation_flag)
+    for shippingLabelOfferId in result[orderItemId]:
+      shipingLabel = get_process(Create_a_shipping_label(orderItemId, shippingLabelOfferId))
+      get_shipping_label(shipingLabel)
+      ship_order_item(orderItemId, shipingLabel)
+except KeyError:
+  print('Time to relax \nNo new orders!!')
